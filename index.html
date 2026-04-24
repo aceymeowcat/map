@@ -11,6 +11,7 @@
         html, body {margin: 0; padding: 0; height: 100%; width: 100%}
         #map {width: 100%; height: 100%}
     </style>
+    <link rel="icon" href="favicon.ico" id="favicon" />
 </head>
 <body>
     <div id="map"></div>
@@ -27,6 +28,8 @@
             opacity: 1,
         });
         heat.addTo(map);
+
+        L.control.layers(null, { 'Heat': heat }, { collapsed: false }).addTo(map);
     </script>
 </body>
 </html>
