@@ -42,12 +42,12 @@
             const radius = e.accuracy / 2;
             L.marker(e.latlng).addTo(map);
             L.circle(e.latlng, radius).addTo(map);
-            map.panTo(e.latlng);
+            map.setView(e.latlng, 15);
         }
 
         map.on('locationfound', onLocationFound);
         map.on('locationerror', (e) => alert(e.message));
-        map.locate({ setView: true, maxZoom: 15 });
+        map.locate();
     </script>
 </body>
 </html>
