@@ -47,7 +47,7 @@
 
         map.on('locationfound', onLocationFound);
         map.on('locationerror', (e) => alert(e.message));
-        map.locate({ setView: true });
+        map.locate({ setView: true, maxZoom: 15 });
     </script>
 </body>
 </html>
