@@ -12,7 +12,6 @@
         #map {width: 100%; height: 100%}
     </style>
     <link rel="icon" href="favicon.ico" id="favicon">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
 </head>
 <body>
     <div id="map"></div>
@@ -25,12 +24,11 @@
         });
         CartoDB_Positron.addTo(map);
 
-        var heat = L.tileLayer('tiles/{z}_{x}_{y}.png', {
+        var heat = L.tileLayer('spectral/{z}_{x}_{y}.png', {
             opacity: 1,
         });
         heat.addTo(map);
 
-        L.control.layers(null, { 'Heat': heat }, { collapsed: false }).addTo(map);
     </script>
 </body>
 </html>
