@@ -47,40 +47,8 @@
         }
 
         .location-marker {
-            position: relative;
-            width: 60px;
-            height: 60px;
-        }
-
-        .location-marker__cone {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 60px;
-            height: 30px;
-            margin-left: -30px;
-            background: radial-gradient(ellipse at 50% 100%,
-                rgba(42, 122, 226, 0.55) 0%,
-                rgba(42, 122, 226, 0.25) 45%,
-                rgba(42, 122, 226, 0) 75%);
-            clip-path: polygon(50% 100%, 0 0, 100% 0);
-            transform-origin: 50% 100%;
-            transition: transform 120ms linear;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .location-marker.has-heading .location-marker__cone {
-            opacity: 1;
-        }
-
-        .location-marker__dot {
-            position: absolute;
-            top: 50%;
-            left: 50%;
             width: 18px;
             height: 18px;
-            margin: -9px 0 0 -9px;
             background: #2a7ae2;
             border: 3px solid #fff;
             border-radius: 50%;
@@ -114,20 +82,15 @@
 
         const locationIcon = L.divIcon({
             className: '',
-            html: '<div class="location-marker">'
-                + '<div class="location-marker__cone"></div>'
-                + '<div class="location-marker__dot"></div>'
-                + '</div>',
-            iconSize: [60, 60],
-            iconAnchor: [30, 30],
+            html: '<div class="location-marker"></div>',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9],
         });
 
         const followBtn = document.getElementById('follow-btn');
         let marker = null;
         let following = false;
         let hasCenteredOnce = false;
-        let heading = null;
-        let orientationRequested = false;
 
         function setFollowing(value) {
             following = value;
@@ -138,63 +101,7 @@
             }
         }
 
-        function updateHeadingVisual() {
-            if (!marker) return;
-            const el = marker.getElement();
-            if (!el) return;
-            const root = el.querySelector('.location-marker');
-            const cone = el.querySelector('.location-marker__cone');
-            if (!root || !cone) return;
-            if (heading == null || Number.isNaN(heading)) {
-                root.classList.remove('has-heading');
-                return;
-            }
-            root.classList.add('has-heading');
-            cone.style.transform = `rotate(${heading}deg)`;
-        }
-
-        function onDeviceOrientation(event) {
-            // iOS provides true compass heading on webkitCompassHeading (0 = N, clockwise).
-            // Other browsers provide alpha (0 = device facing N, counter-clockwise).
-            let h = null;
-            if (typeof event.webkitCompassHeading === 'number') {
-                h = event.webkitCompassHeading;
-            } else if (event.absolute && typeof event.alpha === 'number') {
-                h = 360 - event.alpha;
-            } else if (typeof event.alpha === 'number') {
-                h = 360 - event.alpha;
-            }
-            if (h != null) {
-                heading = ((h % 360) + 360) % 360;
-                updateHeadingVisual();
-            }
-        }
-
-        function startOrientation() {
-            window.addEventListener('deviceorientationabsolute', onDeviceOrientation, true);
-            window.addEventListener('deviceorientation', onDeviceOrientation, true);
-        }
-
-        async function ensureOrientationPermission() {
-            if (orientationRequested) return;
-            orientationRequested = true;
-            const Req = window.DeviceOrientationEvent;
-            if (Req && typeof Req.requestPermission === 'function') {
-                try {
-                    const result = await Req.requestPermission();
-                    if (result === 'granted') startOrientation();
-                } catch (err) {
-                    console.warn('Orientation permission error:', err);
-                }
-            } else {
-                startOrientation();
-            }
-        }
-
-        followBtn.addEventListener('click', () => {
-            ensureOrientationPermission();
-            setFollowing(!following);
-        });
+        followBtn.addEventListener('click', () => setFollowing(!following));
 
         // Stop following if the user manually drags the map.
         map.on('dragstart', () => {
@@ -207,7 +114,6 @@
 
             if (!marker) {
                 marker = L.marker(latlng, { icon: locationIcon }).addTo(map);
-                updateHeadingVisual();
             } else {
                 marker.setLatLng(latlng);
             }
