@@ -24,9 +24,8 @@
             width: 100%;
         }
 
-        #follow-btn {
+        .map-btn {
             position: absolute;
-            top: 12px;
             right: 12px;
             z-index: 1000;
             padding: 10px 14px;
@@ -39,6 +38,9 @@
             cursor: pointer;
             user-select: none;
         }
+
+        #follow-btn  { top: 12px; }
+        #layer-btn   { top: 56px; min-width: 80px; }
 
         #follow-btn.active {
             color: #fff;
@@ -59,7 +61,8 @@
 </head>
 <body>
     <div id="map"></div>
-    <button id="follow-btn" type="button">Follow me</button>
+    <button id="follow-btn" class="map-btn" type="button">Follow me</button>
+    <button id="layer-btn" class="map-btn" type="button">Run</button>
 
     <script>
         const map = L.map('map', {
@@ -73,12 +76,34 @@
             maxZoom: 20,
         }).addTo(map);
 
-        L.tileLayer('run/{z}/{x}/{y}.png', {
+        const activityLayerOpts = {
             minNativeZoom: 15,
             maxNativeZoom: 15,
             minZoom: 0,
             maxZoom: 20,
-        }).addTo(map);
+        };
+        const activityLayers = {
+            run: L.tileLayer('run/{z}/{x}/{y}.png', activityLayerOpts),
+            ride: L.tileLayer('ride/{z}/{x}/{y}.png', activityLayerOpts),
+        };
+        const activityOrder = ['run', 'ride'];
+        let activeActivity = 'run';
+        activityLayers[activeActivity].addTo(map);
+
+        const layerBtn = document.getElementById('layer-btn');
+
+        function setActivity(name) {
+            if (name === activeActivity) return;
+            map.removeLayer(activityLayers[activeActivity]);
+            activeActivity = name;
+            activityLayers[activeActivity].addTo(map);
+            layerBtn.textContent = name === 'run' ? 'Run' : 'Ride';
+        }
+
+        layerBtn.addEventListener('click', () => {
+            const next = activityOrder[(activityOrder.indexOf(activeActivity) + 1) % activityOrder.length];
+            setActivity(next);
+        });
 
         const locationIcon = L.divIcon({
             className: '',
