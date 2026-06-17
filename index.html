@@ -48,15 +48,7 @@
             border-color: #2a7ae2;
         }
 
-        .location-marker {
-            width: 18px;
-            height: 18px;
-            background: #2a7ae2;
-            border: 3px solid #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 0 2px rgba(42, 122, 226, 0.4),
-                        0 1px 4px rgba(0, 0, 0, 0.4);
-        }
+
     </style>
 </head>
 <body>
@@ -105,9 +97,8 @@
             setActivity(next);
         });
 
-        const locationIcon = L.divIcon({
-            className: '',
-            html: '<div class="location-marker"></div>',
+        const locationIcon = L.icon({
+            iconUrl: 'icon.png',
             iconSize: [18, 18],
             iconAnchor: [9, 9],
         });
