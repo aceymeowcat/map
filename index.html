@@ -135,7 +135,7 @@
             }
 
             if (!hasCenteredOnce) {
-                map.setView(latlng, Math.max(map.getZoom(), 16));
+                map.panTo(latlng);
                 hasCenteredOnce = true;
                 setFollowing(true);
             } else if (following) {
