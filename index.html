@@ -1,31 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel='icon' type='image/png' href='icon.png'>
     <title>Map</title>
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@^5.24.0/dist/maplibre-gl.css">
-    <script src="https://unpkg.com/maplibre-gl@^5.24.0/dist/maplibre-gl.js"></script>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css' />
+    <script src='https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js'></script>
     <style>
-        html, body { height: 100%; margin: 0; }
-        #map { height: 100%; }
-
+        body { margin: 0; padding: 0; }
+        html, body, #map { height: 100%; }
         .layer-btn {
             width: auto;
             padding: 0 12px;
             height: 29px;
-            font: 600 13px/29px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font: 600 13px/29px Arial, sans-serif;
             color: #333;
             background: #fff;
             border: 0;
             cursor: pointer;
         }
-
-        /* Custom location marker */
         .maplibregl-user-location-dot {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             background-color: transparent;
             background-image: url('icon.png');
             background-size: contain;
@@ -39,56 +36,55 @@
     </style>
 </head>
 <body>
-    <div id="map"></div>
-
+    <div id='map'></div>
     <script>
         const activities = ['run', 'ride'];
         let active = activities[0];
 
         const map = new maplibregl.Map({
             container: 'map',
-            center: [-71.1231, 42.3416],
-            zoom: 15,
             style: 'https://tiles.openfreemap.org/styles/positron',
+            zoom: 15,
+            center: [-71.1231, 42.3416],
         });
 
-        // Built-in geolocate button: tracks position, shows a location dot,
-        // and auto-follows until the user drags the map.
         const geolocate = new maplibregl.GeolocateControl({
             positionOptions: { enableHighAccuracy: true },
             trackUserLocation: true,
-            showUserHeading: false,
+            showUserHeading: true,
         });
-        map.addControl(geolocate);
-
-        // Toggles 3D terrain (elevation from Mapterhorn) on/off.
-        map.addControl(new maplibregl.TerrainControl({ source: 'mapterhorn', exaggeration: 2 }));
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+        map.addControl(geolocate, 'top-right');
 
         map.on('load', () => {
-            map.addSource('run', { type: 'raster', tiles: ['run/{z}/{x}/{y}.png'], tileSize: 512, minzoom: 5, maxzoom: 15 });
-            map.addSource('ride', { type: 'raster', tiles: ['ride/{z}/{x}/{y}.png'], tileSize: 512, minzoom: 5, maxzoom: 15 });
-            map.addSource('mapterhorn', {
-                type: 'raster-dem',
-                url: 'https://tiles.mapterhorn.com/tilejson.json',
-                attribution: '&copy; <a href="https://mapterhorn.com/attribution">Mapterhorn</a>',
+            map.addControl(new LayerToggle(), 'top-right');
+            map.addSource('run', {
+                type: 'raster',
+                tiles: ['run/{z}/{x}/{y}.png'],
+                tileSize: 512,
+                minzoom: 5,
+                maxzoom: 15
             });
-
-            // Hillshade sits just above the basemap, underneath roads and labels.
             map.addLayer({
-                id: 'hillshade',
-                type: 'hillshade',
-                source: 'mapterhorn',
-                paint: {
-                    'hillshade-exaggeration': 1,
-                    'hillshade-shadow-color': '#473B24',
-                },
-            }, map.getStyle().layers[0].id);
-            map.addLayer({ id: 'run', type: 'raster', source: 'run' });
-            map.addLayer({ id: 'ride', type: 'raster', source: 'ride', layout: { visibility: 'none' } });
-
-            map.setTerrain({ source: 'mapterhorn', exaggeration: 2 });
-            map.setSky({});
-
+                id: 'run',
+                type: 'raster',
+                source: 'run'
+            });
+            map.addSource('ride', {
+                type: 'raster',
+                tiles: ['ride/{z}/{x}/{y}.png'],
+                tileSize: 512,
+                minzoom: 5,
+                maxzoom: 15
+            });
+            map.addLayer({
+                id: 'ride',
+                type: 'raster',
+                source: 'ride',
+                layout: {
+                    visibility: 'none'
+                }
+            });
             geolocate.trigger();
         });
 
@@ -111,11 +107,11 @@
                 this._container.appendChild(btn);
                 return this._container;
             }
+
             onRemove() {
                 this._container.remove();
             }
         }
-        map.addControl(new LayerToggle());
     </script>
 </body>
 </html>
