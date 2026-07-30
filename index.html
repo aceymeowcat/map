@@ -7,19 +7,10 @@
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css' />
     <script src='https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js'></script>
+    <script src='https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js'></script>
     <style>
         body { margin: 0; padding: 0; }
         html, body, #map { height: 100%; }
-        .layer-btn {
-            width: auto;
-            padding: 0 12px;
-            height: 29px;
-            font: 600 13px/29px Arial, sans-serif;
-            color: #333;
-            background: #fff;
-            border: 0;
-            cursor: pointer;
-        }
         .maplibregl-user-location-dot {
             width: 32px;
             height: 32px;
@@ -38,14 +29,23 @@
 <body>
     <div id='map'></div>
     <script>
-        const activities = ['run', 'ride'];
-        let active = activities[0];
+        const protocol = new pmtiles.Protocol();
+        maplibregl.addProtocol('pmtiles', protocol.tile);
+
+        const MA_URL = 'https://pub-8988f98552af4ca08b302621e0512314.r2.dev/ma.pmtiles';
+        const ma = new pmtiles.PMTiles(MA_URL);
+
+        const CO_URL = 'https://pub-8988f98552af4ca08b302621e0512314.r2.dev/co.pmtiles';
+        const co = new pmtiles.PMTiles(CO_URL);
+
+        protocol.add(ma);
+        protocol.add(co);
 
         const map = new maplibregl.Map({
             container: 'map',
             style: 'https://tiles.openfreemap.org/styles/positron',
-            zoom: 15,
-            center: [-71.1231, 42.3416],
+            zoom: 4,
+            center: [-99.1302, 40.0757],
         });
 
         const geolocate = new maplibregl.GeolocateControl({
@@ -57,61 +57,58 @@
         map.addControl(geolocate, 'top-right');
 
         map.on('load', () => {
-            map.addControl(new LayerToggle(), 'top-right');
-            map.addSource('run', {
+            map.addSource('ma_source', {
                 type: 'raster',
-                tiles: ['run/{z}/{x}/{y}.png'],
+                url: `pmtiles://${MA_URL}`,
                 tileSize: 512,
-                minzoom: 5,
+                minzoom: 0,
                 maxzoom: 15
             });
             map.addLayer({
-                id: 'run',
+                id: 'ma',
                 type: 'raster',
-                source: 'run'
+                source: 'ma_source'
             });
-            map.addSource('ride', {
+            map.addSource('co_source', {
                 type: 'raster',
-                tiles: ['ride/{z}/{x}/{y}.png'],
+                url: `pmtiles://${CO_URL}`,
                 tileSize: 512,
-                minzoom: 5,
+                minzoom: 0,
                 maxzoom: 15
             });
             map.addLayer({
-                id: 'ride',
+                id: 'co',
                 type: 'raster',
-                source: 'ride',
-                layout: {
-                    visibility: 'none'
+                source: 'co_source'
+            });
+            map.addSource('mass_boundary', {
+                type: 'geojson',
+                data: 'ma.geojson'
+            });
+            map.addLayer({
+                id: 'mass_boundary',
+                type: 'line',
+                source: 'mass_boundary',
+                paint: {
+                    'line-color': '#000000',
+                    'line-width': 2
+                }
+            });
+            map.addSource('co_boundary', {
+                type: 'geojson',
+                data: 'co.geojson'
+            });
+            map.addLayer({
+                id: 'co_boundary',
+                type: 'line',
+                source: 'co_boundary',
+                paint: {
+                    'line-color': '#000000',
+                    'line-width': 2
                 }
             });
             geolocate.trigger();
         });
-
-        class LayerToggle {
-            onAdd() {
-                this._container = document.createElement('div');
-                this._container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
-
-                const btn = document.createElement('button');
-                btn.className = 'layer-btn';
-                btn.type = 'button';
-                btn.textContent = 'Run';
-                btn.onclick = () => {
-                    map.setLayoutProperty(active, 'visibility', 'none');
-                    active = activities[(activities.indexOf(active) + 1) % activities.length];
-                    map.setLayoutProperty(active, 'visibility', 'visible');
-                    btn.textContent = active === 'run' ? 'Run' : 'Ride';
-                };
-
-                this._container.appendChild(btn);
-                return this._container;
-            }
-
-            onRemove() {
-                this._container.remove();
-            }
-        }
     </script>
 </body>
 </html>
